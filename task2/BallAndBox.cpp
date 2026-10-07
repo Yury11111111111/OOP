@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <algorithm>
 
 using namespace std;
 
@@ -15,13 +16,14 @@ private:
 public:
     Ball(const string& color) : color(color) {}
 
-    const string& get_color() const {
-        return color;
-    }
+    Ball(const Ball&) = delete;
+    Ball& operator=(const Ball&) = delete;
 
-    void set_box(Box* new_box) {
-        box = new_box;
-    }
+    const string& get_color() const { return color; }
+
+    Box* get_box() const { return box; }
+
+    void set_box(Box* new_box) { box = new_box; }
 
     void show_place() const;
 };
@@ -34,13 +36,31 @@ private:
 public:
     Box(const string& name) : name(name) {}
 
-    const string& get_name() const {
-        return name;
-    }
+    Box(const Box&) = delete;
+    Box& operator=(const Box&) = delete;
+
+    const string& get_name() const { return name; }
 
     void add_ball(Ball& ball) {
+        if (ball.get_box() == this) return;
+
+        if (ball.get_box() != nullptr) {
+            ball.get_box()->remove_ball(ball);
+        }
+
         ball.set_box(this);
         balls.push_back(ball);
+    }
+
+    void remove_ball(Ball& ball) {
+        auto it = find_if(balls.begin(), balls.end(),
+            [&ball](const reference_wrapper<Ball>& r) {
+                return &r.get() == &ball;
+            });
+        if (it != balls.end()) {
+            balls.erase(it);
+            ball.set_box(nullptr);
+        }
     }
 
     void show_balls() const {
@@ -52,12 +72,17 @@ public:
     }
 };
 
+ostream& operator<<(ostream& os, const Ball& ball) {
+    os << ball.get_color() << " ball";
+    if (ball.get_box() == nullptr)
+        os << " is not in a box";
+    else
+        os << " is in " << ball.get_box()->get_name();
+    return os;
+}
+
 void Ball::show_place() const {
-    if (box == nullptr) {
-        cout << color << " ball is not in a box\n";
-    } else {
-        cout << color << " ball is in " << box->get_name() << "\n";
-    }
+    cout << *this << "\n";
 }
 
 int main() {
@@ -73,13 +98,20 @@ int main() {
     box1.add_ball(blue);
     box2.add_ball(green);
 
+    box1.add_ball(green);
+
     box1.show_balls();
     box2.show_balls();
 
-    red.show_place();
-    blue.show_place();
-    green.show_place();
-    yellow.show_place();
+    box1.remove_ball(blue);
+
+    box1.show_balls();
+    box2.show_balls();
+
+    cout << red << "\n";
+    cout << blue << "\n";
+    cout << green << "\n";
+    cout << yellow << "\n";
 
     return 0;
 }
