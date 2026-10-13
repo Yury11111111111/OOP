@@ -72,17 +72,12 @@ public:
     }
 };
 
-ostream& operator<<(ostream& os, const Ball& ball) {
-    os << ball.get_color() << " ball";
-    if (ball.get_box() == nullptr)
-        os << " is not in a box";
-    else
-        os << " is in " << ball.get_box()->get_name();
-    return os;
-}
-
 void Ball::show_place() const {
-    cout << *this << "\n";
+    if (box == nullptr) {
+        cout << color << " ball is not in a box\n";
+    } else {
+        cout << color << " ball is in " << box->get_name() << "\n";
+    }
 }
 
 int main() {
@@ -108,10 +103,10 @@ int main() {
     box1.show_balls();
     box2.show_balls();
 
-    cout << red << "\n";
-    cout << blue << "\n";
-    cout << green << "\n";
-    cout << yellow << "\n";
+    red.show_place();
+    blue.show_place();
+    green.show_place();
+    yellow.show_place();
 
     return 0;
 }
