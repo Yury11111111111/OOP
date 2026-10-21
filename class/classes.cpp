@@ -4,6 +4,18 @@
 
 using namespace std;
 
+/*
+ * ПРЕДМЕТНАЯ ОБЛАСТЬ: Платформа онлайн-курсов
+ * 
+ * КРАТКОЕ ПОЯСНЕНИЕ ПО АССОЦИАТИВНЫМ СВЯЗЯМ:
+ * 1. Наследование: Классы Student, Instructor, Admin наследуются от User
+ * 2. Связь 1 ко многим (Агрегация): Course содержит модули, Module содержит уроки
+ * 3. Связь многие ко многим: Реализована через ассоциативные классы (Enrollment, Review, Certificate)
+ * Связи реализованы с помощью указателей (*) и векторов (vector), что позволяет 
+ * объектам ссылаться друг на друга без дублирования данных
+ */
+
+// Базовый класс, реализующий инкапсуляцию общих свойств
 class User {
 protected:
     int id;
@@ -24,9 +36,10 @@ public:
     }
 };
 
+// НАСЛЕДОВАНИЕ: Студент является частным случаем пользователя
 class Student : public User {
 private:
-    vector<int> enrollments;
+    vector<int> enrollments; // Список ID курсов, на которые записан студент
 
 public:
     Student(int userId, string userName, string userEmail)
@@ -38,6 +51,7 @@ public:
     }
 };
 
+// НАСЛЕДОВАНИЕ: Преподаватель
 class Instructor : public User {
 public:
     Instructor(int userId, string userName, string userEmail)
@@ -48,6 +62,7 @@ public:
     }
 };
 
+// НАСЛЕДОВАНИЕ: Администратор
 class Admin : public User {
 public:
     Admin(int userId, string userName, string userEmail)
@@ -58,6 +73,7 @@ public:
     }
 };
 
+// Независимая сущность (Урок)
 class Lesson {
 private:
     int id;
@@ -74,11 +90,12 @@ public:
     }
 };
 
+// СВЯЗЬ 1 КО МНОГИМ: Модуль содержит множество уроков
 class Module {
 private:
     int id;
     string title;
-    vector<Lesson*> lessons;
+    vector<Lesson*> lessons; // Ассоциация с уроками
 
 public:
     Module(int moduleId, string moduleTitle) {
@@ -95,11 +112,12 @@ public:
     }
 };
 
+// СВЯЗЬ 1 КО МНОГИМ: Курс содержит множество модулей
 class Course {
 private:
     int id;
     string title;
-    vector<Module*> modules;
+    vector<Module*> modules; // Ассоциация с модулями
 
 public:
     Course(int courseId, string courseTitle) {
@@ -116,11 +134,13 @@ public:
     }
 };
 
+// СВЯЗЬ МНОГИЕ КО МНОГИМ: Ассоциативный класс, связывающий Студента и Курс.
+// Хранит указатели на оба объекта.
 class Enrollment {
 private:
     int id;
-    Student* student;
-    Course* course;
+    Student* student; // Ссылка на студента
+    Course* course;   // Ссылка на курс
 
 public:
     Enrollment(int enrollmentId, Student* s, Course* c) {
@@ -136,10 +156,11 @@ public:
     }
 };
 
+// АССОЦИАЦИЯ: Класс прогресса связывает Студента и конкретный Урок
 class Progress {
 private:
-    Student* student;
-    Lesson* lesson;
+    Student* student; // Кто проходит
+    Lesson* lesson;   // Какой урок
     bool isCompleted;
 
 public:
@@ -154,10 +175,11 @@ public:
     }
 };
 
+// АССОЦИАЦИЯ: Отзыв связывает Студента и Курс
 class Review {
 private:
-    Student* student;
-    Course* course;
+    Student* student; // Автор отзыва
+    Course* course;   // Курс, на который оставлен отзыв
     string text;
 
 public:
@@ -172,10 +194,11 @@ public:
     }
 };
 
+// АССОЦИАЦИЯ: Сертификат связывает Студента и пройденный Курс
 class Certificate {
 private:
-    Student* student;
-    Course* course;
+    Student* student; // Кому выдан
+    Course* course;   // За какой курс
 
 public:
     Certificate(Student* s, Course* c) {
@@ -189,26 +212,31 @@ public:
 };
 
 int main() {
+    // Создание объектов ролей (наследники User)
     Student student(1, "Ivan", "ivan@example.com");
     Instructor instructor(2, "Petr", "petr@example.com");
     Admin admin(3, "Anna", "anna@example.com");
 
+    // Создание контента (Курс -> Модуль -> Урок)
     Lesson lesson1(1, "Introduction to OOP");
     Module module1(1, "Chapter 1. Basics");
-    module1.addLesson(&lesson1);
+    module1.addLesson(&lesson1); // Связываем урок с модулем
 
     Course course(101, "C++ Basics");
-    course.addModule(&module1);
+    course.addModule(&module1); // Связываем модуль с курсом
 
+    // Демонстрация действий ролей
     instructor.createCourse("C++ Basics");
     admin.manageUsers();
     student.enroll(101);
 
-    Enrollment enrollment(1, &student, &course);
+    // Демонстрация ассоциативных связей
+    Enrollment enrollment(1, &student, &course); // Связываем студента и курс
     
     cout << "\n--- Data Check ---" << endl;
     enrollment.displayInfo();
     
+    // Связываем прогресс, отзыв и сертификат с конкретными объектами
     Progress progress(&student, &lesson1, true);
     progress.displayInfo();
 
